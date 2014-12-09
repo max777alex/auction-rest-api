@@ -4,14 +4,6 @@ from classes import *
 app = Flask(__name__)
 app.json_encoder = MyJSONEncoder
 
-items = [Item(item_id=1, start_time=0, end_time=10, start_price=Price(value=5, currency='USD'),
-              address=Address(country='Russia', town='Tomsk'), seller=User('user1'),
-              bids=[Bid(bid_time=12, price=Price(value=6, currency='USD'), owner=User('bidder1')),
-                    Bid(bid_time=15, price=Price(value=8, currency='USD'), owner=User('bidder2'))]),
-         Item(item_id=2, start_time=5, end_time=13, start_price=Price(value=12, currency='EUR'),
-              address=Address(country='Russia', town='Barnaul'), seller=User('user2'),
-              bids=[Bid(bid_time=12, price=Price(value=15, currency='EUR'), owner=User('bidder1'))])]
-
 
 @app.route('/items', methods=['GET'])
 def get_items():
@@ -71,8 +63,8 @@ def update_task(item_id):
         item.start_price.currency = request.json['start_price']['currency']
 
     if 'address' in request.json:
-        item.address.country = request.json.get('address')['country']
-        item.address.town = request.json.get('address')['town']
+        item.address.country = request.json['address']['country']
+        item.address.town = request.json['address']['town']
 
     if 'seller' in request.json:
         item.seller.login = request.json['seller']['login']
@@ -87,6 +79,36 @@ def delete_task(item_id):
         abort(404)
     items.remove(item[0])
     return jsonify({'result': True})
+
+
+@app.route('/convert_price', methods=['POST'])
+def convert_price():
+    if not request.json \
+            or not 'value' in request.json \
+            or not 'currency' in request.json \
+            or not 'new_currency' in request.json:
+        abort(400)
+
+    price = Price(value=request.json['value'],
+                  currency=request.json['currency'])
+    new_currency = request.json['new_currency']
+
+    price = Service.convert_currency(price, new_currency)
+    return jsonify({'price': price}), 200
+
+
+@app.route('/search_items', methods=['POST'])
+def search_items():
+    if not request.json \
+            or not 'price_from' in request.json \
+            or not 'price_to' in request.json:
+        abort(400)
+
+    price_from = request.json['price_from']
+    price_to = request.json['price_to']
+
+    result = Service.search_items(price_from, price_to)
+    return jsonify({'items': result}), 200
 
 
 if __name__ == '__main__':

@@ -42,14 +42,23 @@ class Price(object):
         self.currency = currency
 
 
+items = [Item(item_id=1, start_time=0, end_time=10, start_price=Price(value=5, currency='USD'),
+              address=Address(country='Russia', town='Tomsk'), seller=User('user1'),
+              bids=[Bid(bid_time=12, price=Price(value=6, currency='USD'), owner=User('bidder1')),
+                    Bid(bid_time=15, price=Price(value=8, currency='USD'), owner=User('bidder2'))]),
+         Item(item_id=2, start_time=5, end_time=13, start_price=Price(value=12, currency='EUR'),
+              address=Address(country='Russia', town='Barnaul'), seller=User('user2'),
+              bids=[Bid(bid_time=12, price=Price(value=15, currency='EUR'), owner=User('bidder1'))])]
+
+
 class Service(object):
     @staticmethod
     def convert_currency(price, new_currency):
-        return Price(price.value, new_currency)
+        return Price(price.value * 1.5, new_currency)
 
     @staticmethod
     def search_items(price_from, price_to):
-        return []
+        return [x for x in items if price_from <= x.start_price.value <= price_to]
 
 
 class MyJSONEncoder(JSONEncoder):
