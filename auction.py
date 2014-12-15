@@ -1,5 +1,5 @@
 from flask import Flask, jsonify, make_response, abort, request, render_template
-from classes import *
+from services.models import *
 
 app = Flask(__name__)
 app.json_encoder = MyJSONEncoder
@@ -114,11 +114,6 @@ def search_items():
 @app.route('/', methods=['GET'])
 def index():
     return render_template('index.html')
-
-@app.route('/more_info/<int:item_id>', methods=['GET'])
-def show_items(item_id):
-    return render_template('more_info.html')
-
 
 if __name__ == '__main__':
     app.run(debug=True)

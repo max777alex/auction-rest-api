@@ -1,46 +1,7 @@
 from flask.json import JSONEncoder
-
-
-class Item(object):
-    def __init__(self, item_id, start_time, end_time, start_price, address, seller, bids):
-        self.item_id = item_id
-        self.start_time = start_time
-        self.end_time = end_time
-        self.start_price = start_price
-        self.address = address
-        self.seller = seller
-        self.bids = bids
-
-
-class Order(object):
-    def __init__(self, place_time, item):
-        self.place_time = place_time
-        self.item = item
-
-
-class Address(object):
-    def __init__(self, country, town):
-        self.country = country
-        self.town = town
-
-
-class User(object):
-    def __init__(self, login):
-        self.login = login
-
-
-class Bid(object):
-    def __init__(self, bid_time, price, owner):
-        self.bid_time = bid_time
-        self.price = price
-        self.owner = owner
-
-
-class Price(object):
-    def __init__(self, value, currency):
-        self.value = value
-        self.currency = currency
-
+from item.models import Item, Address, Bid, Price
+from order.models import Order
+from user.models import User
 
 items = [Item(item_id=1, start_time=0, end_time=10, start_price=Price(value=5, currency='USD'),
               address=Address(country='Russia', town='Tomsk'), seller=User('user1'),
