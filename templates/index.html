@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html>
+    <head lang="en">
+        <meta charset="UTF-8">
+        <title></title>
+        <script src="../static/jquery-1.9.1.js"></script>
+        <script>
+            $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
+
+            items = [];
+
+            function showItems() {
+                $.get("items").done(function (data) {
+                    var itemsDiv = $("#items");
+                    itemsDiv.empty();
+                    for(var i = 0; i < data.items.length; ++i)
+                    {
+                        var item = data.items[i];
+                        items[i] = item;
+                        itemsDiv.append(item.item_id + "<br/>");
+                        itemsDiv.append("<button id='" + item.item_id + "' class='moreInfoButton'>more info</button>");
+                        itemsDiv.append("<hr/>");
+                    }
+
+                    $("button.moreInfoButton").click(function(){
+                        var item_id = $(this).prop('id');
+                        $("#item_id").val(item_id);
+                        var item;
+
+                        for(var i = 0; i < items.length; ++i)
+                        {
+                            if(items[i].item_id == item_id)
+                            {
+                                item = items[i];
+                                break;
+                            }
+                        }
+
+                        $("#start_time").val(item.start_time);
+                        $("#end_time").val(item.end_time);
+                        $("#value").val(item.start_price.value);
+                        $("#currency").val(item.start_price.currency);
+                        $("#country").val(item.address.country);
+                        $("#town").val(item.address.town);
+                        $("#login").val(item.seller.login);
+                    });
+                });
+            }
+
+            function getItem(){
+                var obj = {};
+                obj.start_time = parseInt($("#start_time").val());
+                obj.end_time = parseInt($("#end_time").val());
+                var start_price = {};
+                start_price.value = parseFloat($("#value").val());
+                start_price.currency = $("#currency").val();
+                obj.start_price = start_price;
+                var address = {};
+                address.country = $("#country").val();
+                address.town = $("#town").val();
+                obj.address = address;
+                var seller = {};
+                seller.login = $("#login").val();
+                obj.seller = seller;
+                return obj;
+            }
+
+            function clearFields()
+            {
+                $("#item_id").val('');
+                $("#start_time").val('');
+                $("#end_time").val('');
+                $("#value").val('');
+                $("#currency").val('');
+                $("#country").val('');
+                $("#town").val('');
+                $("#login").val('');
+            }
+
+            $(document).ready(function() {
+                showItems();
+
+                $("#addItemButton").click(function(){
+                    $("#item_id").val('');
+                    var obj = getItem();
+                    $.ajax({
+                        type: "POST",
+                        url: $SCRIPT_ROOT + "/items",
+                        data: JSON.stringify(obj),
+                        dataType: 'json',
+                        contentType: 'application/json; charset=utf-8'
+                    }).done(function(obj){
+                        showItems();
+                    });
+                });
+
+                $("#deleteItemButton").click(function(){
+                    var item_id = $("#item_id").val();
+                    if(!$.isNumeric(item_id))
+                    {
+                        alert('select the item');
+                        return;
+                    }
+
+                    $.ajax({
+                        type: "DELETE",
+                        url: $SCRIPT_ROOT + "/items/" + item_id,
+                        dataType: 'json',
+                        contentType: 'application/json; charset=utf-8'
+                    }).done(function(obj){
+                        clearFields()
+                        showItems();
+                    });
+                });
+
+                $("#updateItemButton").click(function(){
+                    var item_id = $("#item_id").val();
+                    if(!$.isNumeric(item_id))
+                    {
+                        alert('select the item');
+                        return;
+                    }
+
+                    var obj = getItem();
+
+                    $.ajax({
+                        type: "PUT",
+                        url: $SCRIPT_ROOT + "/items/" + item_id,
+                        data: JSON.stringify(obj),
+                        dataType: 'json',
+                        contentType: 'application/json; charset=utf-8'
+                    }).done(function(obj){
+                        showItems();
+                    });
+                });
+
+                $("#clearFieldsButton").click(function(){
+                    clearFields();
+                })
+            });
+        </script>
+    </head>
+
+    <body>
+        <h1>Item creation</h1>
+        <input type="hidden" id="item_id"/>
+        Start time <input id="start_time"/><br/>
+        End time <input id="end_time"/><br/>
+        Start price <br/>
+        value <input id="value"/> currency <input id="currency"/><br/>
+        Address <br/>
+        country <input id="country"/> town <input id="town"/> <br/>
+        Seller <br/>
+        name <input id="login"/><br/>
+
+        <button id="addItemButton">add item</button>
+        <button id="updateItemButton">update item</button>
+        <button id="deleteItemButton">delete item</button>
+        <button id="clearFieldsButton">clear fields</button>
+
+        <h1>Items</h1>
+        <div id="items">
+
+        </div>
+    </body>
+</html>

@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, make_response, abort, request
+from flask import Flask, jsonify, make_response, abort, request, render_template
 from classes import *
 
 app = Flask(__name__)
@@ -24,7 +24,7 @@ def get_item(item_id):
 
 
 @app.route('/items', methods=['POST'])
-def create_task():
+def create_item():
     if not request.json or \
             not 'start_time' in request.json or \
             not 'end_time' in request.json or \
@@ -34,20 +34,20 @@ def create_task():
         abort(400)
 
     item = Item(item_id=1 if len(items) == 0 else items[-1].item_id + 1,
-                start_time=request.json.get('start_time'),
-                end_time=request.json.get('end_time'),
-                start_price=Price(value=request.json.get('start_price')['value'],
-                                  currency=request.json.get('start_price')['currency']),
-                address=Address(country=request.json.get('address')['country'],
-                                town=request.json.get('address')['town']),
-                seller=User(login=request.json.get('seller')['login']),
+                start_time=request.json['start_time'],
+                end_time=request.json['end_time'],
+                start_price=Price(value=request.json['start_price']['value'],
+                                  currency=request.json['start_price']['currency']),
+                address=Address(country=request.json['address']['country'],
+                                town=request.json['address']['town']),
+                seller=User(login=request.json['seller']['login']),
                 bids=[])
     items.append(item)
     return jsonify({'item': item}), 201
 
 
 @app.route('/items/<int:item_id>', methods=['PUT'])
-def update_task(item_id):
+def update_item(item_id):
     item = [x for x in items if x.item_id == item_id]
     if not request.json or len(item) == 0 or \
             'start_time' in request.json and type(request.json['start_time']) != int or \
@@ -73,7 +73,7 @@ def update_task(item_id):
 
 
 @app.route('/items/<int:item_id>', methods=['DELETE'])
-def delete_task(item_id):
+def delete_item(item_id):
     item = [x for x in items if x.item_id == item_id]
     if len(item) == 0:
         abort(404)
@@ -109,6 +109,15 @@ def search_items():
 
     result = Service.search_items(price_from, price_to)
     return jsonify({'items': result}), 200
+
+
+@app.route('/', methods=['GET'])
+def index():
+    return render_template('index.html')
+
+@app.route('/more_info/<int:item_id>', methods=['GET'])
+def show_items(item_id):
+    return render_template('more_info.html')
 
 
 if __name__ == '__main__':
